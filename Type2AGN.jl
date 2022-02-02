@@ -71,14 +71,14 @@ end
 function LineComponent(source::QSO{T}, line::AsymmTailLine, multicomp::Bool) where T <: T2Recipe
     comp = LineComponent(source, GenericLine(line.tid), multicomp).comp
     comp.fwhm.val  = 500
-    comp.fwhm.high = 1e3
+    comp.fwhm.high = 2e3
     comp.voff.low  = line.side == :blue ?    0  :  720
     comp.voff.high = line.side == :blue ?  720  :    0
     return LineComponent(line, comp, multicomp)
 end
 
 function default_unk_line(source::QSO{T}) where T <: T2Recipe
-    comp = SpecLineGauss(5e3)
+    comp = SpecLineGauss(2e3)
     comp.norm.val = 0.
     comp.center.fixed = false
     comp.center.low = 0
