@@ -1,13 +1,13 @@
 using CMPFit, GFit, Gnuplot
 using QSFit, DataStructures, Statistics, Dierckx
 
-import QSFit: known_spectral_lines, add_qso_continuum!, LineComponent
+import QSFit: default_options, known_spectral_lines, add_qso_continuum!, LineComponent
 
-export T2Recipe
+export Type2AGN
 
-abstract type T2Recipe <: DefaultRecipe end
+abstract type Type2AGN <: DefaultRecipe end
 
-function default_options(::Type{T}) where T <: T2Recipe
+function default_options(::Type{T}) where T <: Type2AGN
     out = OrderedDict{Symbol, Any}()
     out[:host_template] = "Ell5"
     out[:use_host_template] = true
@@ -22,7 +22,7 @@ function default_options(::Type{T}) where T <: T2Recipe
     return out
 end
 
-function known_spectral_lines(source::QSO{T}) where T <: T2Recipe
+function known_spectral_lines(source::QSO{T}) where T <: Type2AGN
     list = [
         NarrowLine(                      :Lyb                       ),
         NarrowLine(                      :Lya                       ),
@@ -48,7 +48,7 @@ function known_spectral_lines(source::QSO{T}) where T <: T2Recipe
     return list
 end
 
-function add_qso_continuum(source::QSO{T}, pspec::PreparedSpectrum, model::Model) where T <: T2Recipe
+function add_qso_continuum(source::QSO{T}, pspec::PreparedSpectrum, model::Model) where T <: Type2AGN
     λ = domain(model)[:]
 
     comp = QSFit.powerlaw(median(λ))
@@ -59,7 +59,7 @@ function add_qso_continuum(source::QSO{T}, pspec::PreparedSpectrum, model::Model
     evaluate!(model)
 end
 
-function LineComponent(source::QSO{T}, line::NarrowLine, multicomp::Bool) where T <: T2Recipe
+function LineComponent(source::QSO{T}, line::NarrowLine, multicomp::Bool) where T <: Type2AGN
     lc = LineComponent(parent_recipe(source), line, multicomp) # invoke parent recipe
     lc.comp.fwhm.low  = 10 
     lc.comp.fwhm.high = 1000
@@ -68,7 +68,7 @@ function LineComponent(source::QSO{T}, line::NarrowLine, multicomp::Bool) where 
     return lc
 end
 
-function LineComponent(source::QSO{T}, line::AsymmTailLine, multicomp::Bool) where T <: T2Recipe
+function LineComponent(source::QSO{T}, line::AsymmTailLine, multicomp::Bool) where T <: Type2AGN
     comp = LineComponent(source, GenericLine(line.tid), multicomp).comp
     comp.fwhm.val  = 500
     comp.fwhm.high = 2e3
@@ -77,7 +77,7 @@ function LineComponent(source::QSO{T}, line::AsymmTailLine, multicomp::Bool) whe
     return LineComponent(line, comp, multicomp)
 end
 
-function default_unk_line(source::QSO{T}) where T <: T2Recipe
+function default_unk_line(source::QSO{T}) where T <: Type2AGN
     comp = SpecLineGauss(2e3)
     comp.norm.val = 0.
     comp.center.fixed = false
@@ -90,7 +90,7 @@ function default_unk_line(source::QSO{T}) where T <: T2Recipe
     return comp
 end
 
-function add_patch_functs!(source::QSO{T}, pspec::PreparedSpectrum, model::Model) where T <: T2Recipe
+function add_patch_functs!(source::QSO{T}, pspec::PreparedSpectrum, model::Model) where T <: Type2AGN
     # Patch parameters
     @try_patch! begin
         # model[:OIII_4959].norm = model[:OIII_5007].norm / 3

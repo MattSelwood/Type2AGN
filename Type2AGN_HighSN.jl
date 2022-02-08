@@ -1,13 +1,13 @@
 using CMPFit, GFit, Gnuplot
 using QSFit, DataStructures, Statistics, Dierckx
 
-import QSFit: known_spectral_lines, add_qso_continuum!, LineComponent, SpecLineLorentz, SpecLineGauss
+import QSFit: default_options, known_spectral_lines, add_qso_continuum!, LineComponent, SpecLineLorentz, SpecLineGauss
 
 include("Type2AGN.jl")
 
 export T2HSNRecipe
 
-abstract type T2HSNRecipe <: T2Recipe end
+abstract type T2HSNRecipe <: Type2AGN end
 
 function default_options(::Type{T}) where T <: T2HSNRecipe
     out = OrderedDict{Symbol, Any}()
