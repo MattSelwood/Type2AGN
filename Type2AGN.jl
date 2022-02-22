@@ -9,7 +9,12 @@ abstract type Type2AGN <: DefaultRecipe end
 
 function default_options(::Type{T}) where T <: Type2AGN
     out = OrderedDict{Symbol, Any}()
-    out[:host_template] = "Ell5"
+    out[:wavelength_range] = [1215, 7.3e3]
+    out[:min_spectral_coverage] = Dict(:default => 0.6,
+                                       :ironuv  => 0.3,
+                                       :ironopt => 0.3)
+    out[:skip_lines] = Symbol[]
+    out[:host_template] = Dict(:library=>"swire", :template=>"Ell5")
     out[:use_host_template] = true
     out[:use_balmer] = false
     out[:use_ironuv] = false
@@ -19,6 +24,9 @@ function default_options(::Type{T}) where T <: Type2AGN
     out[:unk_avoid] = [4863 .+ [-1,1] .* 50, 
                        6565 .+ [-1,1] .* 150,
                        5008 .+ [-1,1] .* 25]
+    out[:line_broadening] = true
+    out[:norm_integrated] = true
+    out[:line_profiles] = :gauss
     return out
 end
 
@@ -37,7 +45,7 @@ function known_spectral_lines(source::QSO{T}) where T <: Type2AGN
         NarrowLine(                      :Hb                        ),
         NarrowLine(                      :OIII_4959                 ),
         NarrowLine(                      :OIII_5007                 ),
-        AsymmTailLine(                   :OIII_5007      ,     :blue),
+        NarrowLine(                      :OIII_5007, cname=:OIII_5007_bw),
         NarrowLine(                      :OI_6300                   ),
         NarrowLine(                      :OI_6364                   ),
         NarrowLine(                      :NII_6549                  ),
@@ -66,15 +74,6 @@ function LineComponent(source::QSO{T}, line::NarrowLine, multicomp::Bool) where 
     lc.comp.voff.high = 500
     @info line.tid lc.comp.fwhm.val
     return lc
-end
-
-function LineComponent(source::QSO{T}, line::AsymmTailLine, multicomp::Bool) where T <: Type2AGN
-    comp = LineComponent(source, GenericLine(line.tid), multicomp).comp
-    comp.fwhm.val  = 500
-    comp.fwhm.high = 2e3
-    comp.voff.low  = line.side == :blue ?    0  :  720
-    comp.voff.high = line.side == :blue ?  720  :    0
-    return LineComponent(line, comp, multicomp)
 end
 
 function default_unk_line(source::QSO{T}) where T <: Type2AGN
