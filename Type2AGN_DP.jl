@@ -8,25 +8,8 @@ export Type2AGN_DP
 abstract type Type2AGN_DP <: Type2AGN end
 
 function default_options(::Type{T}) where T <: Type2AGN_DP
-    out = OrderedDict{Symbol, Any}()
-    out[:wavelength_range] = [1215, 7.3e3]
-    out[:min_spectral_coverage] = Dict(:default => 0.6,
-                                       :ironuv  => 0.3,
-                                       :ironopt => 0.3)
-    out[:skip_lines] = Symbol[]
-    out[:host_template] = Dict(:library=>"swire", :template=>"Ell5")
-    out[:use_host_template] = true
-    out[:use_balmer] = false
-    out[:use_ironuv] = false
-    out[:use_ironopt] = false
-    out[:use_lorentzian_profiles] = false
+    out = default_options(supertype(T))
     out[:n_unk] = 4
-    out[:unk_avoid] = [4863 .+ [-1,1] .* 50, 
-                       6565 .+ [-1,1] .* 150,
-                       5008 .+ [-1,1] .* 25]
-    out[:line_broadening] = true
-    out[:norm_integrated] = true
-    out[:line_profiles] = :gauss
     return out
 end
 
