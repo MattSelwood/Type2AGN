@@ -55,8 +55,21 @@ end
 
 function add_patch_functs!(source::QSO{T}, pspec::PreparedSpectrum, model::Model) where T <: Type2AGN_DP
     add_patch_functs!(parent_recipe(source), pspec, model)
-    @patch! begin
-        model[:OIII_4959_2].voff += model[:OIII_5007].voff
+    @try_patch! begin
         model[:OIII_5007_2].voff += model[:OIII_5007].voff
+        model[:Ha_2].voff += model[:Ha].voff
+        model[:Hb_2].voff += model[:Hb].voff
+    end
+    @try_patch! begin
+        model[:Ha].voff = model[:Hb].voff
+        model[:Ha].fwhm = model[:Hb].fwhm
+    end
+    @try_patch! begin
+        model[:Ha_2].voff = model[:Hb_2].voff
+        model[:Ha_2].fwhm = model[:Hb_2].fwhm
+    end
+    @try_patch! begin
+        model[:OIII_4959_2].voff = model[:OIII_5007_2].voff
+        #model[:OIII_4959_2].fwhm = model[:OIII_5007_2].fwhm
     end
 end
