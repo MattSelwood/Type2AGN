@@ -11,37 +11,32 @@ abstract type Type2AGN_HSN <: Type2AGN end
 
 function default_options(::Type{T}) where T <: Type2AGN_HSN
     out = OrderedDict{Symbol, Any}()
+    out[:wavelength_range] = [1215, 7.3e3]
+    out[:min_spectral_coverage] = Dict(:default => 0.6,
+                                       :ironuv  => 0.3,
+                                       :ironopt => 0.3)
+    out[:skip_lines] = Symbol[]
+    out[:host_template] = Dict(:library=>"swire", :template=>"Ell5")
+    out[:use_host_template] = true
+    out[:use_balmer] = false
+    out[:use_ironuv] = false
+    out[:use_ironopt] = false
+    out[:use_lorentzian_profiles] = false
     out[:n_unk] = 6
+    out[:unk_avoid] = [4863 .+ [-1,1] .* 50, 
+                       6565 .+ [-1,1] .* 150,
+                       5008 .+ [-1,1] .* 25]
+    out[:line_broadening] = true
+    out[:norm_integrated] = true
+    out[:line_profiles] = :gauss
     return out
 end
 
-function known_spectral_lines(source::QSO{T}) where T <: Type2AGN_HSN
-    list = [
-        NarrowLine(   :Lyb                       ),
-        NarrowLine(   :Lya                       ),
-        NarrowLine(   :NV_1241                   ),
-        NarrowLine(   :CIV_1549                  ),
-        NarrowLine(   :CIII_1909                 ),
-        NarrowLine(   :MgII_2798                 ),
-        NarrowLine(   :NeV_3426                  ),
-        NarrowLine(   :OII_3727                  ),
-        NarrowLine(   :NeIII_3869                ),
-        NarrowLine(   :Hg                        ),
-        NarrowLine(   :HeII_4686                 ),
-        NarrowLine(   :Hb                        ),
-        NarrowLine(   :Hb       , cname=:Hb_2    ),
-        NarrowLine(   :OIII_4959                 ),
-        NarrowLine(   :OIII_4959, cname=:OIII_4959_2),
-        NarrowLine(   :OIII_5007                 ),
-        NarrowLine(   :OIII_5007, cname=:OIII_5007_2),
-        NarrowLine(   :OIII_5007, cname=:OIII_5007_bw),
-        NarrowLine(   :OI_6300                   ),
-        NarrowLine(   :OI_6364                   ),
-        NarrowLine(   :NII_6549                  ),
-        NarrowLine(   :Ha                        ),
-        NarrowLine(   :Ha       , cname=:Ha_2    ),
-        NarrowLine(   :NII_6583                  ),
-        NarrowLine(   :SII_6716                  ),
-        NarrowLine(   :SII_6731                  )]
+function known_spectral_lines(source::QSO{T}) where T <: Type2AGN_DP
+    list = known_spectral_lines(parent_recipe(source))
+    push!(list, NarrowLine(:Hb, cname=:Hb_2))
+    push!(list, NarrowLine(:OIII_4959, cname=:OIII_4959_2))
+    push!(list, NarrowLine(:OIII_5007, cname=:OIII_5007_2))
+    push!(list, NarrowLine(:Ha, cname=:Ha_2))
     return list
 end

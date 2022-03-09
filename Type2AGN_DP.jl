@@ -31,32 +31,12 @@ function default_options(::Type{T}) where T <: Type2AGN_DP
 end
 
 function known_spectral_lines(source::QSO{T}) where T <: Type2AGN_DP
-    list = [
-        NarrowLine(   :Lyb                       ),
-        NarrowLine(   :Lya                       ),
-        NarrowLine(   :NV_1241                   ),
-        NarrowLine(   :CIV_1549                  ),
-        NarrowLine(   :CIII_1909                 ),
-        NarrowLine(   :MgII_2798                 ),
-        NarrowLine(   :NeV_3426                  ),
-        NarrowLine(   :OII_3727                  ),
-        NarrowLine(   :NeIII_3869                ),
-        NarrowLine(   :Hg                        ),
-        NarrowLine(   :HeII_4686                 ),
-        NarrowLine(   :Hb                        ),
-        NarrowLine(   :Hb       , cname=:Hb_2    ),
-        NarrowLine(   :OIII_4959                 ),
-        NarrowLine(   :OIII_4959, cname=:OIII_4959_2),
-        NarrowLine(   :OIII_5007                 ),
-        NarrowLine(   :OIII_5007, cname=:OIII_5007_2),
-        NarrowLine(   :OI_6300                   ),
-        NarrowLine(   :OI_6364                   ),
-        NarrowLine(   :NII_6549                  ),
-        NarrowLine(   :Ha                        ),
-        NarrowLine(   :Ha       , cname=:Ha_2    ),
-        NarrowLine(   :NII_6583                  ),
-        NarrowLine(   :SII_6716                  ),
-        NarrowLine(   :SII_6731                  )]
+    list = known_spectral_lines(parent_recipe(source))
+    push!(list, NarrowLine(:Hb, cname=:Hb_2))
+    push!(list, NarrowLine(:OIII_4959, cname=:OIII_4959_2))
+    push!(list, NarrowLine(:OIII_5007, cname=:OIII_5007_2))
+    push!(list, NarrowLine(:Ha, cname=:Ha_2))
+    deleteat!(list, findall(x->x==NarrowLine(                      :OIII_5007, cname=:OIII_5007_bw), list))
     return list
 end
 
