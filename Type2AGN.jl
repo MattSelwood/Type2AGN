@@ -43,7 +43,6 @@ function QSFit.known_spectral_lines(source::QSO{T}) where T <: Type2AGN
         NarrowLine(                      :Hg                        ),
         NarrowLine(                      :Hb                        ),
         NarrowLine(                      :OIII_4959                 ),
-        NarrowLine(                      :OIII_4959, cname=:OIII_4959_bw),
         NarrowLine(                      :OIII_5007                 ),
         NarrowLine(                      :OIII_5007, cname=:OIII_5007_bw),
         NarrowLine(                      :OI_6300                   ),
