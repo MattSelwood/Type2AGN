@@ -1,5 +1,3 @@
-using Pkg
-using QSFit, GFitViewer
 include("Type2AGN.jl")
 
 source = QSO{Type2AGN}("SDSS J101054.72-002811.8", 0.18168407678604126, ebv=0.048840656876564026);

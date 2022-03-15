@@ -1,19 +1,14 @@
-using CMPFit, GFit, Gnuplot
-using QSFit, DataStructures, Statistics, Dierckx
-
-import QSFit: default_options, known_spectral_lines, add_qso_continuum!, add_patch_functs!, LineComponent, SpecLineLorentz, SpecLineGauss
-
-export Type2AGN_DP
+include("Type2AGN.jl")
 
 abstract type Type2AGN_DP <: Type2AGN end
 
-function default_options(::Type{T}) where T <: Type2AGN_DP
+function QSFit.default_options(::Type{T}) where T <: Type2AGN_DP
     out = default_options(supertype(T))
     out[:n_unk] = 4
     return out
 end
 
-function known_spectral_lines(source::QSO{T}) where T <: Type2AGN_DP
+function QSFit.known_spectral_lines(source::QSO{T}) where T <: Type2AGN_DP
     list = known_spectral_lines(parent_recipe(source))
     push!(list, NarrowLine(:Hb, cname=:Hb_2))
     push!(list, NarrowLine(:OIII_4959, cname=:OIII_4959_2))
@@ -24,7 +19,7 @@ function known_spectral_lines(source::QSO{T}) where T <: Type2AGN_DP
 end
 
 
-function LineComponent(source::QSO{T}, line::NarrowLine, multicomp::Bool) where T <: Type2AGN_DP
+function QSFit.LineComponent(source::QSO{T}, line::NarrowLine, multicomp::Bool) where T <: Type2AGN_DP
     lc = LineComponent(parent_recipe(source), line, multicomp)
     lc.comp.fwhm.low  = 100
     lc.comp.fwhm.high = 500
@@ -36,7 +31,7 @@ function LineComponent(source::QSO{T}, line::NarrowLine, multicomp::Bool) where 
     return lc
 end
 
-function add_patch_functs!(source::QSO{T}, pspec::PreparedSpectrum, model::Model) where T <: Type2AGN_DP
+function QSFit.add_patch_functs!(source::QSO{T}, pspec::PreparedSpectrum, model::Model) where T <: Type2AGN_DP
     add_patch_functs!(parent_recipe(source), pspec, model)
     @try_patch! begin
         model[:OIII_5007_2].voff += model[:OIII_5007].voff
