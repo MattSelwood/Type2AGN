@@ -1,4 +1,4 @@
-using CMPFit, GFit, Gnuplot
+using CMPFit, GFit, Gnuplot, GFitViewer
 using QSFit, DataStructures, Statistics, Dierckx
 
 import QSFit: default_options, known_spectral_lines, add_qso_continuum!, add_patch_functs!,
