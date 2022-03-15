@@ -1,7 +1,7 @@
 using Pkg
-using QSFit
-including("Type2AGN.jl")
-including("Type2AGN_HSN.jl")
+using QSFit, GFitViewer
+include("Type2AGN.jl")
+include("Type2AGN_HSN.jl")
 
 source = QSO{Type2AGN_HSN}("SDSS J101036.21+005459.4", 0.12021894752979279, ebv=0.03682737052440643);
 add_spec!(source, Spectrum(Val(:SDSS_DR10), "data/spec-0271-51883-0372.fits", resolution=150.));
