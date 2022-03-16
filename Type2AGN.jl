@@ -1,13 +1,12 @@
-using CMPFit, GFit, Gnuplot
+using CMPFit, GFit, Gnuplot, GFitViewer
 using QSFit, DataStructures, Statistics, Dierckx
 
-import QSFit: default_options, known_spectral_lines, add_qso_continuum!, LineComponent
-
-export Type2AGN
+import QSFit: default_options, known_spectral_lines, add_qso_continuum!, add_patch_functs!,
+    LineComponent, SpecLineLorentz, SpecLineGauss
 
 abstract type Type2AGN <: DefaultRecipe end
 
-function default_options(::Type{T}) where T <: Type2AGN
+function QSFit.default_options(::Type{T}) where T <: Type2AGN
     out = OrderedDict{Symbol, Any}()
     out[:wavelength_range] = [1215, 7.3e3]
     out[:min_spectral_coverage] = Dict(:default => 0.6,
@@ -30,7 +29,7 @@ function default_options(::Type{T}) where T <: Type2AGN
     return out
 end
 
-function known_spectral_lines(source::QSO{T}) where T <: Type2AGN
+function QSFit.known_spectral_lines(source::QSO{T}) where T <: Type2AGN
     list = [
         NarrowLine(                      :Lyb                       ),
         NarrowLine(                      :Lya                       ),
@@ -56,7 +55,7 @@ function known_spectral_lines(source::QSO{T}) where T <: Type2AGN
     return list
 end
 
-function add_qso_continuum(source::QSO{T}, pspec::PreparedSpectrum, model::Model) where T <: Type2AGN
+function QSFit.add_qso_continuum!(source::QSO{T}, pspec::PreparedSpectrum, model::Model) where T <: Type2AGN
     λ = domain(model)[:]
 
     comp = QSFit.powerlaw(median(λ))
@@ -67,7 +66,7 @@ function add_qso_continuum(source::QSO{T}, pspec::PreparedSpectrum, model::Model
     evaluate!(model)
 end
 
-function LineComponent(source::QSO{T}, line::NarrowLine, multicomp::Bool) where T <: Type2AGN
+function QSFit.LineComponent(source::QSO{T}, line::NarrowLine, multicomp::Bool) where T <: Type2AGN
     lc = LineComponent(parent_recipe(source), line, multicomp) # invoke parent recipe
     lc.comp.fwhm.low  = 10 
     lc.comp.fwhm.high = 1000
@@ -76,7 +75,7 @@ function LineComponent(source::QSO{T}, line::NarrowLine, multicomp::Bool) where 
     return lc
 end
 
-function default_unk_line(source::QSO{T}) where T <: Type2AGN
+function QSFit.default_unk_line(source::QSO{T}) where T <: Type2AGN
     comp = SpecLineGauss(2e3)
     comp.norm.val = 0.
     comp.center.fixed = false
@@ -89,7 +88,7 @@ function default_unk_line(source::QSO{T}) where T <: Type2AGN
     return comp
 end
 
-function add_patch_functs!(source::QSO{T}, pspec::PreparedSpectrum, model::Model) where T <: Type2AGN
+function QSFit.add_patch_functs!(source::QSO{T}, pspec::PreparedSpectrum, model::Model) where T <: Type2AGN
     # Patch parameters
     @try_patch! begin
         # model[:OIII_4959].norm = model[:OIII_5007].norm / 3
