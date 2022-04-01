@@ -2,29 +2,19 @@ using CMPFit, GFit, Gnuplot, GFitViewer
 using QSFit, DataStructures, Statistics, Dierckx
 
 import QSFit: default_options, known_spectral_lines, add_qso_continuum!, add_patch_functs!,
-    LineComponent, SpecLineLorentz, SpecLineGauss
+    LineComponent, SpecLineLorentz, SpecLineGauss, default_unk_line
 
 abstract type Type2AGN <: DefaultRecipe end
 
 function QSFit.default_options(::Type{T}) where T <: Type2AGN
-    out = OrderedDict{Symbol, Any}()
-    out[:wavelength_range] = [1215, 7.3e3]
-    out[:min_spectral_coverage] = Dict(:default => 0.6,
-                                       :ironuv  => 0.3,
-                                       :ironopt => 0.3)
-    out[:skip_lines] = Symbol[]
-    out[:host_template] = Dict(:library=>"swire", :template=>"Ell5")
-    out[:use_host_template] = true
+    out = default_options(supertype(T))
     out[:use_balmer] = false
     out[:use_ironuv] = false
     out[:use_ironopt] = false
-    out[:use_lorentzian_profiles] = false
     out[:n_unk] = 2
     out[:unk_avoid] = [4863 .+ [-1,1] .* 50, 
                        6565 .+ [-1,1] .* 150,
                        5008 .+ [-1,1] .* 25]
-    out[:line_broadening] = true
-    out[:norm_integrated] = true
     out[:line_profiles] = :gauss
     return out
 end
@@ -97,7 +87,7 @@ function QSFit.add_patch_functs!(source::QSO{T}, pspec::PreparedSpectrum, model:
     @try_patch! begin
         model[:OIII_5007_bw].voff += model[:OIII_5007].voff
         model[:OIII_5007_bw].fwhm += model[:OIII_5007].fwhm
-        model[:OIII_5007_bw].norm += model[:OIII_5007].norm # is this correct way round?
+        model[:OIII_5007_bw].norm += model[:OIII_5007].norm 
     end
     @try_patch! begin
         # model[:OI_6300].norm = model[:OI_6364].norm / 3
