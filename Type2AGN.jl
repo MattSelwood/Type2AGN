@@ -1,7 +1,7 @@
 using CMPFit, GFit, Gnuplot, GFitViewer
 using QSFit, DataStructures, Statistics
 
-import QSFit: Options, add_qso_continuum!, add_patch_functs!, Job, JobState,
+import QSFit: Options, collect_linecomps, add_qso_continuum!, add_patch_functs!, Job, JobState,
     EmLineComponent, SpecLineLorentz, SpecLineGauss
 
 abstract type Type2AGN <: DefaultRecipe end
