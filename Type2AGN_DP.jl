@@ -1,5 +1,7 @@
 include("Type2AGN.jl")
 
+import QSFit: collect_linecomps
+
 abstract type Type2AGN_DP <: Type2AGN end
 
 function QSFit.Options(::Type{T}) where T <: Type2AGN_DP
@@ -18,7 +20,6 @@ function QSFit.Options(::Type{T}) where T <: Type2AGN_DP
     out[:lines][:OIII_5007_2]    = StdEmLine(:OIII_5007, :narrow)
     out[:lines][:OIII_5007_core] = StdEmLine(:OIII_5007, :narrow)
     out[:lines][:Ha_2]           = StdEmLine(:Ha       , :narrow)
-    #out[:lines][:Ha_core]       = StdEmLine(:Ha       , :narrow)
     out[:lines][:NII_6583_2]     = StdEmLine(:NII_6583 , :narrow)
     return out
 end
@@ -41,7 +42,7 @@ function QSFit.collect_linecomps(::Type{T}, job::Job) where T <: Type2AGN_DP
             lc.comp.voff.low  = 100
             lc.comp.voff.high = 500
         end
-        if name in [:OIII_4959_core, :OIII_5007_core, :Ha_core]
+        if name in [:OIII_4959_core, :OIII_5007_core]
             lc.comp.fwhm.high = 1000
         end
     end
@@ -61,14 +62,6 @@ function QSFit.add_patch_functs!(::Type{T}, job::JobState) where T <: Type2AGN_D
         job.model[:OII_3727_2].fwhm.patch = :OIII_5007_2
     end
 
-    if haskey(job.model, :Hb)  &&  haskey(job.model, :Ha)
-        job.model[:Hb].voff.patch = :Ha
-    end
-    if haskey(job.model, :Hb_2)  &&  haskey(job.model, :Ha_2)
-        job.model[:Hb_2].voff.patch = :Ha_2
-    end
-    # job.model[:Hb].fwhm.patch = :OIII_5007
-    # job.model[:Hb_2].fwhm.patch = :OIII_5007_2
 
     if haskey(job.model, :OIII_4959_2)  &&  haskey(job.model, :OIII_5007_2)
         job.model[:OIII_4959_2].voff.patch = :OIII_5007_2
@@ -78,19 +71,18 @@ function QSFit.add_patch_functs!(::Type{T}, job::JobState) where T <: Type2AGN_D
         job.model[:OIII_4959_core].voff.patch = :OIII_5007_core
         job.model[:OIII_4959_core].fwhm.patch = :OIII_5007_core
     end
-    job.model[:OIII_5007_2].voff.patch    = @λ (v,m) -> v + m[:OIII_5007].voff
-    job.model[:OIII_5007_core].fwhm.patch = @λ (v,m) -> v + m[:OIII_5007].fwhm
+    
+    #job.model[:OIII_5007_2].voff.patch    = @λ (v,m) -> v + m[:OIII_5007].voff
 
     if haskey(job.model, :Ha_2)  &&  haskey(job.model, :Ha)
         job.model[:Ha_2].voff.patch    = @λ (v,m) -> v + m[:Ha].voff
     end
-    if haskey(job.model, :Ha_core)  &&  haskey(job.model, :Ha)
-        job.model[:Ha_core].fwhm.patch = @λ (v,m) -> v + m[:Ha].fwhm
-    end
+
     if haskey(job.model, :Ha)  &&  haskey(job.model, :Hb)
         job.model[:Ha].voff.patch = :Hb
         job.model[:Ha].fwhm.patch = :Hb
     end
+
     if haskey(job.model, :Ha_2)  &&  haskey(job.model, :Hb_2)
         job.model[:Ha_2].voff.patch = :Hb_2
         job.model[:Ha_2].fwhm.patch = :Hb_2
