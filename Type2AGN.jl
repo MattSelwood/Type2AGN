@@ -1,12 +1,12 @@
 using CMPFit, GFit, Gnuplot, GFitViewer
-using QSFit, DataStructures, Statistics, Dierckx
+using QSFit, DataStructures, Statistics
 
-import QSFit: default_options, known_spectral_lines, add_qso_continuum!, add_patch_functs!,
-    LineComponent, SpecLineLorentz, SpecLineGauss, default_unk_line
+import QSFit: Options, collect_linecomps, add_qso_continuum!, add_patch_functs!, Job, JobState,
+    EmLineComponent, SpecLineLorentz, SpecLineGauss
 
 abstract type Type2AGN <: DefaultRecipe end
 
-function QSFit.default_options(::Type{T}) where T <: Type2AGN
+function QSFit.Options(::Type{T}) where T <: Type2AGN
     out = OrderedDict{Symbol, Any}()
     out[:wavelength_range] = [1215, 7.3e3]
     out[:min_spectral_coverage] = Dict(:default => 0.6,
@@ -27,89 +27,88 @@ function QSFit.default_options(::Type{T}) where T <: Type2AGN
     out[:line_broadening] = true
     out[:norm_integrated] = true
     out[:line_profiles] = :gauss
+
+    lines = OrderedDict{Symbol, QSFit.EmLineDescription}()
+    out[:lines] = lines
+
+    lines[:Lyb       ] = StdEmLine(:Lyb       , :narrow)
+    lines[:Lya       ] = StdEmLine(:Lya       , :narrow)
+    lines[:NV_1241   ] = StdEmLine(:NV_1241   , :narrow)
+    lines[:CIV_1549  ] = StdEmLine(:CIV_1549  , :narrow)
+    lines[:CIII_1909 ] = StdEmLine(:CIII_1909 , :narrow)
+    lines[:MgII_2798 ] = StdEmLine(:MgII_2798 , :narrow)
+    lines[:NeV_3426  ] = StdEmLine(:NeV_3426  , :narrow)
+    lines[:OII_3727  ] = StdEmLine(:OII_3727  , :narrow)
+    lines[:NeIII_3869] = StdEmLine(:NeIII_3869, :narrow)
+    lines[:Hg        ] = StdEmLine(:Hg        , :narrow)
+    lines[:Hb        ] = StdEmLine(:Hb        , :narrow)
+    lines[:OIII_4959 ] = StdEmLine(:OIII_4959 , :narrow)
+    lines[:OIII_5007 ] = StdEmLine(:OIII_5007 , :narrow)
+    lines[:OIII_5007_bw]=StdEmLine(:OIII_5007 , :narrow)
+    lines[:OI_6300   ] = StdEmLine(:OI_6300   , :narrow)
+    lines[:OI_6364   ] = StdEmLine(:OI_6364   , :narrow)
+    lines[:NII_6549  ] = StdEmLine(:NII_6549  , :narrow)
+    lines[:Ha        ] = StdEmLine(:Ha        , :narrow)
+    lines[:NII_6583  ] = StdEmLine(:NII_6583  , :narrow)
+    lines[:SII_6716  ] = StdEmLine(:SII_6716  , :narrow)
+    lines[:SII_6731  ] = StdEmLine(:SII_6731  , :narrow)
     return out
 end
 
-function QSFit.known_spectral_lines(source::QSO{T}) where T <: Type2AGN
-    list = [
-        NarrowLine(                      :Lyb                       ),
-        NarrowLine(                      :Lya                       ),
-        NarrowLine(                      :NV_1241                   ),
-        NarrowLine(                      :CIV_1549                  ),
-        NarrowLine(                      :CIII_1909                 ),
-        NarrowLine(                      :MgII_2798                 ),
-        NarrowLine(                      :NeV_3426                  ),
-        NarrowLine(                      :OII_3727                  ),
-        NarrowLine(                      :NeIII_3869                ),
-        NarrowLine(                      :Hg                        ),
-        NarrowLine(                      :Hb                        ),
-        NarrowLine(                      :OIII_4959                 ),
-        NarrowLine(                      :OIII_5007                 ),
-        NarrowLine(                      :OIII_5007, cname=:OIII_5007_bw),
-        NarrowLine(                      :OI_6300                   ),
-        NarrowLine(                      :OI_6364                   ),
-        NarrowLine(                      :NII_6549                  ),
-        NarrowLine(                      :Ha                        ),
-        NarrowLine(                      :NII_6583                  ),
-        NarrowLine(                      :SII_6716                  ),
-        NarrowLine(                      :SII_6731                  )]
-    return list
-end
-
-function QSFit.add_qso_continuum!(source::QSO{T}, pspec::PreparedSpectrum, model::Model) where T <: Type2AGN
-    λ = domain(model)[:]
+function QSFit.add_qso_continuum!(::Type{T}, job::JobState) where T <: Type2AGN
+    λ = domain(job.model)[:]
 
     comp = QSFit.powerlaw(median(λ))
     comp.alpha.val = -1.8
 
-    model[:qso_cont] = comp
-    push!(model[:Continuum].list, :qso_cont)
-    evaluate!(model)
+    job.model[:qso_cont] = comp
+    push!(job.model[:Continuum].list, :qso_cont)
+    evaluate(job.model)
 end
 
-function QSFit.LineComponent(source::QSO{T}, line::NarrowLine, multicomp::Bool) where T <: Type2AGN
-    lc = LineComponent(parent_recipe(source), line, multicomp) # invoke parent recipe
+function QSFit.EmLineComponent(::Type{T}, job::Job, λ::Float64, ::Val{:narrow}) where T <: Type2AGN
+    lc = QSFit.EmLineComponent(supertype(T), job, λ, Val(:narrow)) # invoke parent recipe
     lc.comp.fwhm.low  = 10 
     lc.comp.fwhm.high = 1000
     lc.comp.voff.high = 500
-    @info line.tid lc.comp.fwhm.val
     return lc
 end
 
-function QSFit.default_unk_line(source::QSO{T}) where T <: Type2AGN
-    comp = SpecLineGauss(2e3)
-    comp.norm.val = 0.
-    comp.center.fixed = false
-    comp.center.low = 0
-    comp.center.high = Inf
-    comp.fwhm.val  = 500
-    comp.fwhm.low  = 10
-    comp.fwhm.high = 2e3
-    comp.voff.fixed = true
-    return comp
+function QSFit.EmLineComponent(::Type{T}, job::Job, λ::Float64, ::Val{:unknown}) where T <: Type2AGN
+    lc = QSFit.EmLineComponent(supertype(T), job, λ, Val(:unknown)) # invoke parent recipe
+    lc.comp.norm.val = 0.
+    lc.comp.center.fixed = false
+    lc.comp.center.low = 0
+    lc.comp.center.high = Inf
+    lc.comp.fwhm.val  = 500
+    lc.comp.fwhm.low  = 10
+    lc.comp.fwhm.high = 2e3
+    lc.comp.voff.fixed = true
+    return lc
 end
 
-function QSFit.add_patch_functs!(source::QSO{T}, pspec::PreparedSpectrum, model::Model) where T <: Type2AGN
+function QSFit.add_patch_functs!(::Type{T}, job::JobState) where T <: Type2AGN
     # Patch parameters
-    @try_patch! begin
-        # model[:OIII_4959].norm = model[:OIII_5007].norm / 3
-        model[:OIII_4959].voff = model[:OIII_5007].voff
+    if haskey(job.model, :OIII_4959)  &&  haskey(job.model, :OIII_5007)
+        # job.model[:OIII_4959].norm.patch = @λ m -> m[:OIII_5007].norm / 3
+        job.model[:OIII_4959].voff.patch = :OIII_5007
     end
-    @try_patch! begin
-        model[:OIII_5007_bw].voff += model[:OIII_5007].voff
-        model[:OIII_5007_bw].fwhm += model[:OIII_5007].fwhm
-        model[:OIII_5007_bw].norm += model[:OIII_5007].norm 
+    if haskey(job.model, :OIII_5007)  &&  haskey(job.model, :OIII_5007_bw)
+        job.model[:OIII_5007_bw].voff.patch = @λ (v,m) -> v + m[:OIII_5007].voff
+        job.model[:OIII_5007_bw].fwhm.patch = @λ (v,m) -> v + m[:OIII_5007].fwhm
+        job.model[:OIII_5007_bw].norm.patch = @λ (v,m) -> v + m[:OIII_5007].norm
     end
-    @try_patch! begin
-        # model[:OI_6300].norm = model[:OI_6364].norm / 3
-        model[:OI_6300].voff = model[:OI_6364].voff
+
+    if haskey(job.model, :OI_6300)  &&  haskey(job.model, :OI_6364)
+        # job.model[:OI_6300].norm.patch = @λ m -> m[:OI_6364].norm / 3
+        job.model[:OI_6300].voff.patch = :OI_6364
     end
-    @try_patch! begin
-        # model[:NII_6549].norm = model[:NII_6583].norm / 3
-        model[:NII_6549].voff = model[:NII_6583].voff
+    if haskey(job.model, :NII_6549)  &&  haskey(job.model, :NII_6583)
+        # job.model[:NII_6549].norm.patch = @λ m -> m[:NII_6583].norm / 3
+        job.model[:NII_6549].voff.patch = :NII_6583
     end
-    @try_patch! begin
-        # model[:SII_6716].norm = model[:SII_6731].norm / 1.5
-        model[:SII_6716].voff = model[:SII_6731].voff
+    if haskey(job.model, :SII_6716)  &&  haskey(job.model, :SII_6731)
+        # job.model[:SII_6716].norm.patch = @λ m -> m[:SII_6731].norm / 3
+        job.model[:SII_6716].voff.patch = :SII_6731
     end
 end
