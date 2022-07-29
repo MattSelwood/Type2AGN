@@ -62,6 +62,10 @@ function QSFit.add_patch_functs!(::Type{T}, job::JobState) where T <: Type2AGN_D
         job.model[:OII_3727_2].fwhm.patch = :OIII_5007_2
     end
 
+    if haskey(job.model, :OIII_4959)  &&  haskey(job.model, :OIII_5007)
+        job.model[:OIII_4959].voff.patch = :OIII_5007
+        job.model[:OIII_4959].fwhm.patch = :OIII_5007
+    end
 
     if haskey(job.model, :OIII_4959_2)  &&  haskey(job.model, :OIII_5007_2)
         job.model[:OIII_4959_2].voff.patch = :OIII_5007_2
@@ -70,12 +74,6 @@ function QSFit.add_patch_functs!(::Type{T}, job::JobState) where T <: Type2AGN_D
     if haskey(job.model, :OIII_4959_core)  &&  haskey(job.model, :OIII_5007_core)
         job.model[:OIII_4959_core].voff.patch = :OIII_5007_core
         job.model[:OIII_4959_core].fwhm.patch = :OIII_5007_core
-    end
-    
-    #job.model[:OIII_5007_2].voff.patch    = @λ (v,m) -> v + m[:OIII_5007].voff
-
-    if haskey(job.model, :Ha_2)  &&  haskey(job.model, :Ha)
-        job.model[:Ha_2].voff.patch    = @λ (v,m) -> v + m[:Ha].voff
     end
 
     if haskey(job.model, :Ha)  &&  haskey(job.model, :Hb)
