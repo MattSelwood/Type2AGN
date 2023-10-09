@@ -92,31 +92,29 @@ end
 
 function QSFit.add_patch_functs!(::Type{T}, job::JobState) where T <: Type2AGN
     # Patch parameters
-    if haskey(job.model, :OIII_4959)  &&  haskey(job.model, :OIII_5007)
+    if haskey(job.model, :OIII_4959) && haskey(job.model, :OIII_5007)
         # job.model[:OIII_4959].norm.patch = @λ m -> m[:OIII_5007].norm / 3
         job.model[:OIII_4959].voff.patch = :OIII_5007
     end
-    if haskey(job.model, :OIII_5007)  &&  haskey(job.model, :OIII_5007_bw)
-        job.model[:OIII_5007_bw].voff.patch = @λ (v,m) -> v + m[:OIII_5007].voff
-        job.model[:OIII_5007_bw].fwhm.patch = @λ (v,m) -> v + m[:OIII_5007].fwhm
-        #job.model[:OIII_5007_bw].norm.patch = @λ (v,m) -> v + m[:OIII_5007].norm
+    if haskey(job.model, :OIII_5007) && haskey(job.model, :OIII_5007_bw)
+        job.model[:OIII_5007_bw].voff.patch = @λ (m, v) -> v + m[:OIII_5007].voff
+        job.model[:OIII_5007_bw].fwhm.patch = @λ (m, v) -> v + m[:OIII_5007].fwhm
+        #job.model[:OIII_5007_bw].norm.patch = @λ (m, v) -> v + m[:OIII_5007].norm
     end
-
-    if haskey(job.model, :OIII_4959_bw)  &&  haskey(job.model, :OIII_5007_bw)
+    if haskey(job.model, :OIII_4959_bw) && haskey(job.model, :OIII_5007_bw)
         job.model[:OIII_4959_bw].voff.patch = :OIII_5007_bw
         job.model[:OIII_4959_bw].fwhm.patch = :OIII_5007_bw
-        job.model[:OIII_4959_bw].norm.patch = @λ m -> m[:OIII_5007_bw].norm / 3
+        # job.model[:OIII_4959_bw].norm.patch = @λ m -> m[:OIII_5007_bw].norm / 3
     end
-
-    if haskey(job.model, :OI_6300)  &&  haskey(job.model, :OI_6364)
+    if haskey(job.model, :OI_6300) && haskey(job.model, :OI_6364)
         # job.model[:OI_6300].norm.patch = @λ m -> m[:OI_6364].norm / 3
         job.model[:OI_6300].voff.patch = :OI_6364
     end
-    if haskey(job.model, :NII_6549)  &&  haskey(job.model, :NII_6583)
+    if haskey(job.model, :NII_6549) && haskey(job.model, :NII_6583)
         # job.model[:NII_6549].norm.patch = @λ m -> m[:NII_6583].norm / 3
         job.model[:NII_6549].voff.patch = :NII_6583
     end
-    if haskey(job.model, :SII_6716)  &&  haskey(job.model, :SII_6731)
+    if haskey(job.model, :SII_6716) && haskey(job.model, :SII_6731)
         # job.model[:SII_6716].norm.patch = @λ m -> m[:SII_6731].norm / 3
         job.model[:SII_6716].voff.patch = :SII_6731
     end
