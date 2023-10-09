@@ -1,8 +1,9 @@
-using CMPFit, GFit, Gnuplot, GFitViewer
-using QSFit, DataStructures, Statistics
+using Dierckx, DataStructures, Statistics, Dates
+using MyAstroUtils, Gnuplot
+using GModelFit, GModelFitViewer, QSFit
 
 import QSFit: Options, add_qso_continuum!, add_patch_functs!, Job, JobState,
-    EmLineComponent, SpecLineLorentz, SpecLineGauss
+    EmLineComponent, SpecLineLorentz, SpecLineGauss, SpecLineVoigt
 
 abstract type Type2AGN <: DefaultRecipe end
 
@@ -14,6 +15,7 @@ function QSFit.Options(::Type{T}) where T <: Type2AGN
                                        :ironopt => 0.3)
     out[:skip_lines] = Symbol[]
     out[:host_template] = Dict(:library=>"swire", :template=>"Ell5")
+    out[:host_template_ref_wavelength] = 5500.0 # A
     out[:use_host_template] = true
     out[:host_template_range] = [4000., 7000.]
     out[:use_balmer] = false
@@ -23,53 +25,53 @@ function QSFit.Options(::Type{T}) where T <: Type2AGN
     out[:n_unk] = 2
     out[:unk_avoid] = [4863 .+ [-1,1] .* 50, 
                        6565 .+ [-1,1] .* 150,
-                       5008 .+ [-1,1] .* 25]
+                       5008 .+ [-1,1] .* 25]  # Angstrom
+    out[:unk_maxoffset_from_guess] = 1e3      # km/s
     out[:line_broadening] = true
     out[:norm_integrated] = true
     out[:line_profiles] = :gauss
 
-    lines = OrderedDict{Symbol, QSFit.EmLineDescription}()
-    out[:lines] = lines
+    out[:lines] = OrderedDict{Symbol,QSFit.EmLineDescription}()
 
-    lines[:Lyb       ] = StdEmLine(:Lyb       , :narrow)
-    lines[:Lya       ] = StdEmLine(:Lya       , :narrow)
-    lines[:NV_1241   ] = StdEmLine(:NV_1241   , :narrow)
-    lines[:CIV_1549  ] = StdEmLine(:CIV_1549  , :narrow)
-    lines[:CIII_1909 ] = StdEmLine(:CIII_1909 , :narrow)
-    lines[:MgII_2798 ] = StdEmLine(:MgII_2798 , :narrow)
-    lines[:NeV_3426  ] = StdEmLine(:NeV_3426  , :narrow)
-    lines[:OII_3727  ] = StdEmLine(:OII_3727  , :narrow)
-    lines[:NeIII_3869] = StdEmLine(:NeIII_3869, :narrow)
-    lines[:Hg        ] = StdEmLine(:Hg        , :narrow)
-    lines[:Hb        ] = StdEmLine(:Hb        , :narrow)
-    lines[:OIII_4959 ] = StdEmLine(:OIII_4959 , :narrow)
-    lines[:OIII_4959_bw]=StdEmLine(:OIII_4959 , :narrow)
-    lines[:OIII_5007 ] = StdEmLine(:OIII_5007 , :narrow)
-    lines[:OIII_5007_bw]=StdEmLine(:OIII_5007 , :narrow)
-    lines[:OI_6300   ] = StdEmLine(:OI_6300   , :narrow)
-    lines[:OI_6364   ] = StdEmLine(:OI_6364   , :narrow)
-    lines[:NII_6549  ] = StdEmLine(:NII_6549  , :narrow)
-    lines[:Ha        ] = StdEmLine(:Ha        , :narrow)
-    lines[:NII_6583  ] = StdEmLine(:NII_6583  , :narrow)
-    lines[:SII_6716  ] = StdEmLine(:SII_6716  , :narrow)
-    lines[:SII_6731  ] = StdEmLine(:SII_6731  , :narrow)
+    out[:lines][:Lyb       ] = StdEmLine(:Lyb       , :narrow)
+    out[:lines][:Lya       ] = StdEmLine(:Lya       , :narrow)
+    out[:lines][:NV_1241   ] = StdEmLine(:NV_1241   , :narrow)
+    out[:lines][:CIV_1549  ] = StdEmLine(:CIV_1549  , :narrow)
+    out[:lines][:CIII_1909 ] = StdEmLine(:CIII_1909 , :narrow)
+    out[:lines][:MgII_2798 ] = StdEmLine(:MgII_2798 , :narrow)
+    out[:lines][:NeV_3426  ] = StdEmLine(:NeV_3426  , :narrow)
+    out[:lines][:OII_3727  ] = StdEmLine(:OII_3727  , :narrow)
+    out[:lines][:NeIII_3869] = StdEmLine(:NeIII_3869, :narrow)
+    out[:lines][:Hg        ] = StdEmLine(:Hg        , :narrow)
+    out[:lines][:Hb        ] = StdEmLine(:Hb        , :narrow)
+    out[:lines][:OIII_4959 ] = StdEmLine(:OIII_4959 , :narrow)
+    out[:lines][:OIII_4959_bw]=StdEmLine(:OIII_4959 , :narrow)
+    out[:lines][:OIII_5007 ] = StdEmLine(:OIII_5007 , :narrow)
+    out[:lines][:OIII_5007_bw]=StdEmLine(:OIII_5007 , :narrow)
+    out[:lines][:OI_6300   ] = StdEmLine(:OI_6300   , :narrow)
+    out[:lines][:OI_6364   ] = StdEmLine(:OI_6364   , :narrow)
+    out[:lines][:NII_6549  ] = StdEmLine(:NII_6549  , :narrow)
+    out[:lines][:Ha        ] = StdEmLine(:Ha        , :narrow)
+    out[:lines][:NII_6583  ] = StdEmLine(:NII_6583  , :narrow)
+    out[:lines][:SII_6716  ] = StdEmLine(:SII_6716  , :narrow)
+    out[:lines][:SII_6731  ] = StdEmLine(:SII_6731  , :narrow)
     return out
 end
 
-function QSFit.add_qso_continuum!(::Type{T}, job::JobState) where T <: Type2AGN
-    λ = domain(job.model)[:]
+function QSFit.add_qso_continuum!(::Type{T}, job::JobState) where {T<:Type2AGN}
+    λ = coords(domain(job.model))
 
     comp = QSFit.powerlaw(median(λ))
     comp.alpha.val = -1.8
 
     job.model[:qso_cont] = comp
     push!(job.model[:Continuum].list, :qso_cont)
-    evaluate(job.model)
+    GModelFit.update!(job.model)
 end
 
-function QSFit.EmLineComponent(::Type{T}, job::Job, λ::Float64, ::Val{:narrow}) where T <: Type2AGN
+function QSFit.EmLineComponent(::Type{T}, job::Job, λ::Float64, ::Val{:narrow}) where {T<:Type2AGN}
     lc = QSFit.EmLineComponent(supertype(T), job, λ, Val(:narrow)) # invoke parent recipe
-    lc.comp.fwhm.low  = 10 
+    lc.comp.fwhm.low = 10
     lc.comp.fwhm.high = 1000
     lc.comp.voff.high = 500
     return lc
