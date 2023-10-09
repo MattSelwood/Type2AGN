@@ -1,7 +1,7 @@
 using Pkg
 using QSFit
-include("Type2AGN.jl")
-include("Type2AGN_DP.jl")
+include("src/Type2AGN.jl")
+include("src/Type2AGN_DP.jl")
 
 mkpath("output_doublepeaked")
 
