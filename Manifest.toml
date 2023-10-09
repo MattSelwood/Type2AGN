@@ -43,12 +43,6 @@ version = "0.4.2"
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
-[[deps.BinaryProvider]]
-deps = ["Libdl", "Logging", "SHA"]
-git-tree-sha1 = "ecdec412a9abc8db54c0efc5548c64dfce072058"
-uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
-version = "0.5.10"
-
 [[deps.CFITSIO]]
 deps = ["CFITSIO_jll"]
 git-tree-sha1 = "8425c47db102577eefb93cb37b4480e750116b0d"
@@ -334,9 +328,9 @@ uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
 
 [[deps.GModelFit]]
 deps = ["CMPFit", "DataStructures", "Dates", "Distributions", "GZip", "Gnuplot", "JSON", "LsqFit", "MacroTools", "PrettyTables", "Printf", "ProgressMeter", "Random", "Statistics", "Test"]
-git-tree-sha1 = "dbd71aa29924418ba54f799c4176b98a788ab59a"
+git-tree-sha1 = "4ebc9b51afbedb1ebbe5e4797d73348999427cdf"
 uuid = "ac42e6ba-c0bf-4fcf-827d-deea44b16255"
-version = "0.1.1"
+version = "0.1.0"
 
 [[deps.GModelFitViewer]]
 deps = ["DefaultApplication", "GModelFit", "JSON", "Pkg", "Statistics", "StructC14N"]
@@ -516,9 +510,9 @@ version = "0.6.8"
 
 [[deps.MariaDB_Connector_C_jll]]
 deps = ["Artifacts", "JLLWrappers", "LibCURL_jll", "Libdl", "Libiconv_jll", "OpenSSL_jll", "Pkg", "Zlib_jll"]
-git-tree-sha1 = "fb6dca7aa5962e1e00c03bdf9cda27ae77f2346c"
+git-tree-sha1 = "30523a011413b08ee38a6ed6a18e84c363d0ce79"
 uuid = "aabc7e14-95f1-5e66-9f32-aea603782360"
-version = "3.3.2+0"
+version = "3.1.12+0"
 
 [[deps.Markdown]]
 deps = ["Base64"]
@@ -551,10 +545,10 @@ uuid = "e2d25571-835e-4748-919c-7dd32f5092b3"
 version = "0.1.0"
 
 [[deps.MySQL]]
-deps = ["BinaryProvider", "DBInterface", "Dates", "DecFP", "Libdl", "MariaDB_Connector_C_jll", "Parsers", "Tables"]
-git-tree-sha1 = "9b1984ea6e2adc64172ee93916272fbb5480cc59"
+deps = ["DBInterface", "Dates", "DecFP", "Libdl", "MariaDB_Connector_C_jll", "Parsers", "Tables"]
+git-tree-sha1 = "2f962011721ba26f3b3467b05610a08cfd2caff5"
 uuid = "39abe10b-433b-5dbd-92d4-e302a9df00cd"
-version = "1.3.1"
+version = "1.4.3"
 
 [[deps.NLSolversBase]]
 deps = ["DiffResults", "Distributed", "FiniteDiff", "ForwardDiff"]
