@@ -1,7 +1,7 @@
 using CMPFit, GFit, Gnuplot, GFitViewer
 using QSFit, DataStructures, Statistics
 
-import QSFit: Options, collect_linecomps, add_qso_continuum!, add_patch_functs!, Job, JobState,
+import QSFit: Options, add_qso_continuum!, add_patch_functs!, Job, JobState,
     EmLineComponent, SpecLineLorentz, SpecLineGauss
 
 abstract type Type2AGN <: DefaultRecipe end
@@ -43,6 +43,7 @@ function QSFit.Options(::Type{T}) where T <: Type2AGN
     lines[:Hg        ] = StdEmLine(:Hg        , :narrow)
     lines[:Hb        ] = StdEmLine(:Hb        , :narrow)
     lines[:OIII_4959 ] = StdEmLine(:OIII_4959 , :narrow)
+    lines[:OIII_4959_bw]=StdEmLine(:OIII_4959 , :narrow)
     lines[:OIII_5007 ] = StdEmLine(:OIII_5007 , :narrow)
     lines[:OIII_5007_bw]=StdEmLine(:OIII_5007 , :narrow)
     lines[:OI_6300   ] = StdEmLine(:OI_6300   , :narrow)
@@ -96,7 +97,13 @@ function QSFit.add_patch_functs!(::Type{T}, job::JobState) where T <: Type2AGN
     if haskey(job.model, :OIII_5007)  &&  haskey(job.model, :OIII_5007_bw)
         job.model[:OIII_5007_bw].voff.patch = @λ (v,m) -> v + m[:OIII_5007].voff
         job.model[:OIII_5007_bw].fwhm.patch = @λ (v,m) -> v + m[:OIII_5007].fwhm
-        job.model[:OIII_5007_bw].norm.patch = @λ (v,m) -> v + m[:OIII_5007].norm
+        #job.model[:OIII_5007_bw].norm.patch = @λ (v,m) -> v + m[:OIII_5007].norm
+    end
+
+    if haskey(job.model, :OIII_4959_bw)  &&  haskey(job.model, :OIII_5007_bw)
+        job.model[:OIII_4959_bw].voff.patch = :OIII_5007_bw
+        job.model[:OIII_4959_bw].fwhm.patch = :OIII_5007_bw
+        job.model[:OIII_4959_bw].norm.patch = @λ m -> m[:OIII_5007_bw].norm / 3
     end
 
     if haskey(job.model, :OI_6300)  &&  haskey(job.model, :OI_6364)
