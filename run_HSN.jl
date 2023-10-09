@@ -1,7 +1,7 @@
 using Pkg
 using QSFit
-include("Type2AGN.jl")
-include("Type2AGN_HSN.jl")
+include("src/Type2AGN.jl")
+include("src/Type2AGN_HSN.jl")
 
 mkpath("output_highSN")
 

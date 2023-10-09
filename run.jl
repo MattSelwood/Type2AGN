@@ -1,6 +1,6 @@
 using Pkg
 using QSFit
-include("Type2AGN.jl")
+include("src/Type2AGN.jl")
 
 mkpath("output")
 
