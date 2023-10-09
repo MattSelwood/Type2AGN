@@ -41,8 +41,8 @@ include("src/Type2AGN.jl")
 Now we show how to analyse an example SDSS spectrum (included in the repo):
 ```julia
 source = QSFit.Source("SDSS J085205.38+024310.9", 0.188)  # Define QSFit source object with name and redshift
-add_spec!(source, Spectrum(Val(:SDSS_DR10), "data/spec-0565-52225-0263.fits"))  # Add SDSS spectrum to our source directly from SDSS 1D spectrum
-job = QSFit.Job{Type2AGN}()  # Define the QSFit recipe to analyse our source with
+add_spec!(source, Spectrum(Val(:SDSS_DR10), "data/spec-0565-52225-0263.fits"))  # Add SDSS spectrum to our source
+job = QSFit.Job{Type2AGN}()  # Set the QSFit recipe to analyse our source with
 
 result = QSFit.run(source, job)  # Analyse spectrum with QSFit
 ```
@@ -54,13 +54,13 @@ We can directly view and save a html file of our resulting fit using:
 ```julia
 GModelFitViewer.viewer(result.bestfit, result.fitstats, result.pspec.data)  # View html
 
-GModelFitViewer.serialize_html("SDSS_J085205+024310" * ".html", result.bestfit, result.fitstats, result.pspec.data)
+GModelFitViewer.serialize_html("SDSS_J085205+024310" * ".html", result.bestfit, result.fitstats, result.pspec.data)  # Save html
 ```
 Further documentation on this can be found [here](https://docs.juliahub.com/General/GModelFitViewer/stable/).
 
 To save a fit result to a compressed json file that we can read back in later use:
 ```julia
-GModelFit.serialize("SDSS_J085205+024310" * ".json", result.bestfit, result.fitstats, result.pspec.data, compress=true)
+GModelFit.serialize("SDSS_J085205+024310" * ".json", result.bestfit, result.fitstats, result.pspec.data, compress=true) 
 ``` 
 
 To read it back in we can use:
