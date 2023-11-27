@@ -47,6 +47,11 @@ job = QSFit.Job{Type2AGN}()  # Set the QSFit recipe to analyse our source with
 result = QSFit.run(source, job)  # Analyse spectrum with QSFit
 ```
 
+Note that for spectra that are not in an SDSS DR10 1D format the only difference is that we must explicitly define the Spectrum object with vectors we have read in to Julia. Replacing the add_spec! line in the code above with:
+```julia
+add_spec!(source, Spectrum(wavelength_vector, flux_vector_1E-17, uncertainty_vector; resolution=instrument_resolution))  # Add non-SDSS spectrum to our source
+```
+
 ### Saving and Viewing Result
 
 Now that we have analysed our spectrum we want to view and store the results. 
