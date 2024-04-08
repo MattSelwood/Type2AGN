@@ -2,7 +2,7 @@
 
 julia_version = "1.10.2"
 manifest_format = "2.0"
-project_hash = "5134ba702d76c9261d20194c06191a9109e1142e"
+project_hash = "14e0746186ac926557fbeaa9b78ae9fcf96050e6"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra", "Requires"]
@@ -724,9 +724,9 @@ version = "1.10.0"
 
 [[deps.QSFit]]
 deps = ["CMPFit", "Cosmology", "DataStructures", "Dates", "DelimitedFiles", "Dierckx", "DustExtinction", "FITSIO", "GModelFit", "GModelFitViewer", "Gnuplot", "InteractiveUtils", "Pkg", "Polyester", "Printf", "SortMerge", "SpecialFunctions", "Statistics", "Test", "TextParse", "Unitful", "UnitfulAstro"]
-path = "/home/gcalderone/.julia/dev/QSFit"
+git-tree-sha1 = "76fa002b073814ac6effd0fc7f9466469077e014"
 uuid = "fea25315-b951-4667-83c9-50e53efab241"
-version = "0.1.3"
+version = "0.1.2"
 
 [[deps.QuadGK]]
 deps = ["DataStructures", "LinearAlgebra"]
