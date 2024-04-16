@@ -4,26 +4,27 @@ export Type2_AGN_HSN
 function init_recipe!(recipe::Recipe{<: Type2_AGN_HSN})
     @invoke init_recipe!(recipe::Recipe{<: Type2_AGN})
     recipe.n_nuisance = 6
+end
 
-    recipe.lines = [
-        LineDescriptor(:Lya       , NarrowLine),
-        LineDescriptor(:NV_1241   , ForbiddenLine),
-        LineDescriptor(:CIV_1549  , NarrowLine),
-        LineDescriptor(:CIII_1909 , NarrowLine),
-        LineDescriptor(:MgII_2798 , NarrowLine),
-        LineDescriptor(:NeV_3426  , ForbiddenLine),
-        LineDescriptor(:OII_3727  , ForbiddenLine),
-        LineDescriptor(:NeIII_3869, ForbiddenLine),
-        LineDescriptor(:Hg        , NarrowLine),
-        LineDescriptor(:Hb        , NarrowLine, SecondComponent),
-        LineDescriptor(:OIII_4959 , ForbiddenLine, QSFit.QSORecipes.BlueWing, SecondComponent),
-        LineDescriptor(:OIII_5007 , ForbiddenLine, QSFit.QSORecipes.BlueWing, SecondComponent),
-        LineDescriptor(:OI_6300   , ForbiddenLine),
-        LineDescriptor(:OI_6364   , ForbiddenLine),
-        LineDescriptor(:NII_6549  , ForbiddenLine),
-        LineDescriptor(:Ha        , NarrowLine, SecondComponent),
-        LineDescriptor(:NII_6583  , ForbiddenLine),
-        LineDescriptor(:SII_6716  , ForbiddenLine),
-        LineDescriptor(:SII_6731  , ForbiddenLine)
-    ]
+function set_lines_dict!(recipe::Recipe{<: Type2_AGN_HSN})
+    (:lines in propertynames(recipe))  &&  (return get_lines_dict(recipe))
+    add_line!(recipe, :Lya       , NarrowLine)
+    add_line!(recipe, :NV_1241   , ForbiddenLine)
+    add_line!(recipe, :CIV_1549  , NarrowLine)
+    add_line!(recipe, :CIII_1909 , NarrowLine)
+    add_line!(recipe, :MgII_2798 , NarrowLine)
+    add_line!(recipe, :NeV_3426  , ForbiddenLine)
+    add_line!(recipe, :OII_3727  , ForbiddenLine)
+    add_line!(recipe, :NeIII_3869, ForbiddenLine)
+    add_line!(recipe, :Hg        , NarrowLine)
+    add_line!(recipe, :Hb        , NarrowLine, SecondComponent)
+    add_line!(recipe, :OIII_4959 , ForbiddenLine, QSFit.QSORecipes.BlueWing, SecondComponent)
+    add_line!(recipe, :OIII_5007 , ForbiddenLine, QSFit.QSORecipes.BlueWing, SecondComponent)
+    add_line!(recipe, :OI_6300   , ForbiddenLine)
+    add_line!(recipe, :OI_6364   , ForbiddenLine)
+    add_line!(recipe, :NII_6549  , ForbiddenLine)
+    add_line!(recipe, :Ha        , NarrowLine, SecondComponent)
+    add_line!(recipe, :NII_6583  , ForbiddenLine)
+    add_line!(recipe, :SII_6716  , ForbiddenLine)
+    add_line!(recipe, :SII_6731  , ForbiddenLine)
 end

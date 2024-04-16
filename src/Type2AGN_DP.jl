@@ -5,53 +5,45 @@ abstract type Type2_AGN_DP <: Type2_AGN end
 function init_recipe!(recipe::Recipe{<: Type2_AGN_DP})
     @invoke init_recipe!(recipe::Recipe{<: Type2_AGN})
     recipe.n_nuisance = 4
+end
 
-    recipe.lines = [
-        LineDescriptor(:Lya       , NarrowLine),
-        LineDescriptor(:NV_1241   , ForbiddenLine),
-        LineDescriptor(:CIV_1549  , NarrowLine),
-        LineDescriptor(:CIII_1909 , NarrowLine),
-        LineDescriptor(:MgII_2798 , NarrowLine),
-        LineDescriptor(:NeV_3426  , ForbiddenLine),
-        LineDescriptor(:OII_3727  , ForbiddenLine, SecondComponent),
-        LineDescriptor(:NeIII_3869, ForbiddenLine),
-        LineDescriptor(:Hg        , NarrowLine),
-        LineDescriptor(:Hb        , NarrowLine, SecondComponent),
-        LineDescriptor(:OIII_4959 , ForbiddenLine, SecondComponent),
-        LineDescriptor(:OIII_5007 , ForbiddenLine, SecondComponent),
-        LineDescriptor(:OI_6300   , ForbiddenLine),
-        LineDescriptor(:OI_6364   , ForbiddenLine),
-        LineDescriptor(:NII_6549  , ForbiddenLine),
-        LineDescriptor(:Ha        , NarrowLine, SecondComponent),
-        LineDescriptor(:NII_6583  , ForbiddenLine, SecondComponent),
-        LineDescriptor(:SII_6716  , ForbiddenLine),
-        LineDescriptor(:SII_6731  , ForbiddenLine)
-    ]
+function set_lines_dict!(recipe::Recipe{<: Type2_AGN_DP})
+    (:lines in propertynames(recipe))  &&  (return get_lines_dict(recipe))
+    add_line!(recipe, :Lya       , NarrowLine)
+    add_line!(recipe, :NV_1241   , ForbiddenLine)
+    add_line!(recipe, :CIV_1549  , NarrowLine)
+    add_line!(recipe, :CIII_1909 , NarrowLine)
+    add_line!(recipe, :MgII_2798 , NarrowLine)
+    add_line!(recipe, :NeV_3426  , ForbiddenLine)
+    add_line!(recipe, :OII_3727  , ForbiddenLine, SecondComponent)
+    add_line!(recipe, :NeIII_3869, ForbiddenLine)
+    add_line!(recipe, :Hg        , NarrowLine)
+    add_line!(recipe, :Hb        , NarrowLine, SecondComponent)
+    add_line!(recipe, :OIII_4959 , ForbiddenLine, SecondComponent)
+    add_line!(recipe, :OIII_5007 , ForbiddenLine, SecondComponent)
+    add_line!(recipe, :OI_6300   , ForbiddenLine)
+    add_line!(recipe, :OI_6364   , ForbiddenLine)
+    add_line!(recipe, :NII_6549  , ForbiddenLine)
+    add_line!(recipe, :Ha        , NarrowLine, SecondComponent)
+    add_line!(recipe, :NII_6583  , ForbiddenLine, SecondComponent)
+    add_line!(recipe, :SII_6716  , ForbiddenLine)
+    add_line!(recipe, :SII_6731  , ForbiddenLine)
+
+    for id in [:OIII_4959, :OIII_5007]
+        recipe.lines[id].comp.fwhm.high = 1000
+    end
+
+    for id in [:OII_3727_2, :Hb_2, :OIII_4959_2, :OIII_5007_2, :Ha_2, :NII_6583_2]
+        recipe.lines[id].comp.voff.val  = 100
+        recipe.lines[id].comp.voff.low  = 100
+        recipe.lines[id].comp.voff.high = 500
+    end
 end
 
 
-function set_constraints!(recipe::Recipe{<: Type2_AGN_DP}, ::Type{NarrowLine}, comp::QSFit.AbstractSpecLineComp)
-    @invoke set_constraints!(recipe::Recipe{<: Type2_AGN}, NarrowLine, comp)
+function line_component(recipe::Recipe{<: Type2_AGN_DP}, center::Float64, T::Type{NarrowLine})
+    comp = @invoke line_component(recipe::Recipe{<: Type2_AGN}, center, T)
     comp.fwhm.high = 500
-end
-
-
-function line_component(recipe::Recipe{<: Type2_AGN_DP}, T::Type{<: ForbiddenLine}, id::Symbol)
-    comp = @invoke line_component(recipe::Recipe{<: Type2_AGN}, T, id)
-    if id in [:OIII_4959, :OIII_5007]
-        comp.fwhm.high = 1000
-    end
-    return comp
-end
-
-
-function line_component(recipe::Recipe{<: Type2_AGN_DP}, T::Type{<: SecondComponent}, id::Symbol)
-    comp = @invoke line_component(recipe::Recipe{<: Type2_AGN}, T, id)
-    if id in [:OII_3727, :Hb, :OIII_4959, :OIII_5007, :Ha, :NII_6583]
-        comp.voff.val  = 100
-        comp.voff.low  = 100
-        comp.voff.high = 500
-    end
     return comp
 end
 
