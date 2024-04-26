@@ -35,21 +35,19 @@ julia --project=.
 
 Import the Type 2 AGN QSFit recipe and required packages with:
 ```julia
-include("src/Type2AGN.jl")
+using QSFit, Type2AGN, GModelFitViewer
 ```
 
 Now we show how to analyse an example SDSS spectrum (included in the repo):
 ```julia
-source = QSFit.Source("SDSS J085205.38+024310.9", 0.188)  # Define QSFit source object with name and redshift
-add_spec!(source, Spectrum(Val(:SDSS_DR10), "data/spec-0565-52225-0263.fits"))  # Add SDSS spectrum to our source
-job = QSFit.Job{Type2AGN}()  # Set the QSFit recipe to analyse our source with
-
-result = QSFit.run(source, job)  # Analyse spectrum with QSFit
+spec = Spectrum(Val(:SDSS_DR10), "data/spec-0565-52225-0263.fits", resolution=2000., label="SDSS J085205.38+024310.9")
+recipe = Recipe(Type2_AGN, redshift=0.188)
+result = analyze(recipe, spec)
 ```
 
-Note that for spectra that are not in an SDSS DR10 1D format the only difference is that we must explicitly define the Spectrum object with vectors we have read in to Julia. Replacing the add_spec! line in the code above with:
+Note that for spectra that are not in an SDSS DR10 1D format the only difference is that we must explicitly define the Spectrum object with vectors we have read in to Julia. Replacing the `Spectrum` line in the code above with:
 ```julia
-add_spec!(source, Spectrum(wavelength_vector, flux_vector_1E-17, uncertainty_vector; resolution=instrument_resolution))  # Add non-SDSS spectrum to our source
+spec = Spectrum(wavelength_vector, flux_vector_1E-17, uncertainty_vector; resolution=instrument_resolution))  # Add non-SDSS spectrum to our source
 ```
 
 ### Saving and Viewing Result
@@ -57,22 +55,20 @@ add_spec!(source, Spectrum(wavelength_vector, flux_vector_1E-17, uncertainty_vec
 Now that we have analysed our spectrum we want to view and store the results. 
 We can directly view and save a html file of our resulting fit using:
 ```julia
-GModelFitViewer.viewer(result.bestfit, result.fitstats, result.pspec.data)  # View html
-
-GModelFitViewer.serialize_html("SDSS_J085205+024310" * ".html", result.bestfit, result.fitstats, result.pspec.data)  # Save html
+GModelFitViewer.viewer(result)  # View html
+GModelFitViewer.serialize_html(result, filename="SDSS_J085205+024310" * ".html")  # Save html
 ```
 Further documentation on this can be found [here](https://docs.juliahub.com/General/GModelFitViewer/stable/).
 
 To save a fit result to a compressed json file that we can read back in later use:
 ```julia
-GModelFit.serialize("SDSS_J085205+024310" * ".json", result.bestfit, result.fitstats, result.pspec.data, compress=true) 
+using GModelFit
+GModelFit.serialize("SDSS_J085205+024310" * ".json", result.bestfit, result.fitstats, result.data, compress=true) 
 ``` 
 
 To read it back in we can use:
 ```julia
-result = GModelFit.deserialize("SDSS_J085205+024310.json.gz")
-
-bestfit, fitstats, data = result
+bestfit, fitstats, data = GModelFit.deserialize("SDSS_J085205+024310.json.gz")
 ```
 
 
@@ -84,25 +80,7 @@ Following these instrunctions will provide a `bare-bones' reporoduction of the a
 Download [Reyes et. al (2008)](10.1088/0004-6256/136/6/2373) SDSS Type 2 AGN sample fits files [here.](https://uob-my.sharepoint.com/:u:/g/personal/ms16439_bristol_ac_uk/EQgZ8KXMeO1OkHWsMh8GLqoBQ2QNGpXepHu_zcdGUFB2Tg?e=WtizgZ)
 
 
-### Download the required packages
-```julia
-using Pkg
-Pkg.add(url="https://github.com/gcalderone/QSFit.jl/", rev="master")
-]add GModelFitViewer
-```
-
 ### Replicate the analysis for all the sources
 ```julia
-include("src/Type2AGN.jl")
 include("run.jl")
-```
-
-### Replicate the analysis for a specific source
-```julia
-include("src/Type2AGN.jl")
-source = QSFit.Source("SDSS J101054.72-002811.8", 0.18, ebv=0.048);
-add_spec!(source, Spectrum(Val(:SDSS_DR10), "data/spec-0271-51883-0178.fits"));
-job = QSFit.Job{Type2AGN}()  # Define the QSFit recipe to analyse our source with
-
-result = QSFit.run(source, job)  # Analyse spectrum with QSFit
 ```

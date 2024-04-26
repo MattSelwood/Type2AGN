@@ -1,97 +1,96 @@
-include("Type2AGN.jl")
+export Type2_AGN_DP
 
-import QSFit: collect_linecomps
+abstract type Type2_AGN_DP <: Type2_AGN end
 
-abstract type Type2AGN_DP <: Type2AGN end
+function init_recipe!(recipe::Recipe{<: Type2_AGN_DP})
+    @invoke init_recipe!(recipe::Recipe{<: Type2_AGN})
+    recipe.n_nuisance = 4
+end
 
-function QSFit.Options(::Type{T}) where T <: Type2AGN_DP
-    out = Options(supertype(T))
-    out[:n_unk] = 4
-    out[:unk_avoid] = [4863 .+ [-1,1] .* 50, 
-                       6565 .+ [-1,1] .* 150,
-                       5008 .+ [-1,1] .* 25,
-                       4959 .+ [-1,1] .* 25]
+function set_lines_dict!(recipe::Recipe{<: Type2_AGN_DP})
+    (:lines in propertynames(recipe))  &&  (return get_lines_dict(recipe))
+    add_line!(recipe, :Lya       , NarrowLine)
+    add_line!(recipe, :NV_1241   , ForbiddenLine)
+    add_line!(recipe, :CIV_1549  , NarrowLine)
+    add_line!(recipe, :CIII_1909 , NarrowLine)
+    add_line!(recipe, :MgII_2798 , NarrowLine)
+    add_line!(recipe, :NeV_3426  , ForbiddenLine)
+    add_line!(recipe, :OII_3727  , ForbiddenLine, SecondComponent)
+    add_line!(recipe, :NeIII_3869, ForbiddenLine)
+    add_line!(recipe, :Hg        , NarrowLine)
+    add_line!(recipe, :Hb        , NarrowLine, SecondComponent)
+    add_line!(recipe, :OIII_4959 , ForbiddenLine, SecondComponent)
+    add_line!(recipe, :OIII_5007 , ForbiddenLine, SecondComponent)
+    add_line!(recipe, :OI_6300   , ForbiddenLine)
+    add_line!(recipe, :OI_6364   , ForbiddenLine)
+    add_line!(recipe, :NII_6549  , ForbiddenLine)
+    add_line!(recipe, :Ha        , NarrowLine, SecondComponent)
+    add_line!(recipe, :NII_6583  , ForbiddenLine, SecondComponent)
+    add_line!(recipe, :SII_6716  , ForbiddenLine)
+    add_line!(recipe, :SII_6731  , ForbiddenLine)
 
-    delete!(out[:lines], :OIII_5007_bw)
-    out[:lines][:OII_3727_2]     = StdEmLine(:OII_3727 , :narrow)
-    out[:lines][:Hb_2]           = StdEmLine(:Hb       , :narrow)
-    out[:lines][:OIII_4959_2]    = StdEmLine(:OIII_4959, :narrow)
-    out[:lines][:OIII_4959_core] = StdEmLine(:OIII_4959, :narrow)
-    out[:lines][:OIII_5007_2]    = StdEmLine(:OIII_5007, :narrow)
-    out[:lines][:OIII_5007_core] = StdEmLine(:OIII_5007, :narrow)
-    out[:lines][:Ha_2]           = StdEmLine(:Ha       , :narrow)
-    out[:lines][:NII_6583_2]     = StdEmLine(:NII_6583 , :narrow)
-    return out
+    for id in [:OIII_4959, :OIII_5007]
+        recipe.lines[id].comp.fwhm.high = 1000
+    end
+
+    for id in [:OII_3727_2, :Hb_2, :OIII_4959_2, :OIII_5007_2, :Ha_2, :NII_6583_2]
+        recipe.lines[id].comp.voff.val  = 100
+        recipe.lines[id].comp.voff.low  = 100
+        recipe.lines[id].comp.voff.high = 500
+    end
 end
 
 
-function QSFit.EmLineComponent(::Type{T}, job::Job, λ::Float64, ::Val{:narrow}) where T <: Type2AGN_DP
-    lc = QSFit.EmLineComponent(supertype(T), job, λ, Val(:narrow)) # invoke parent recipe
-    #lc.comp.fwhm.low = 100
-    lc.comp.fwhm.high = 500
-    #lc.comp.fwhm.val = 100
-    return lc
+function line_component(recipe::Recipe{<: Type2_AGN_DP}, center::Float64, T::Type{NarrowLine})
+    comp = @invoke line_component(recipe::Recipe{<: Type2_AGN}, center, T)
+    comp.fwhm.high = 500
+    return comp
 end
 
 
-function QSFit.collect_linecomps(::Type{T}, job::Job) where T <: Type2AGN_DP
-    lcs = collect_linecomps(supertype(T), job)
-    for (name, lc) in lcs
-        if name in [:OII_3727, :Hb_2, :OIII_4959_2, :OIII_5007_2, :Ha_2, :NII_6583_2]
-            lc.comp.voff.val  = 100
-            lc.comp.voff.low  = 100
-            lc.comp.voff.high = 500
-        end
-        if name in [:OIII_4959_core, :OIII_5007_core]
-            lc.comp.fwhm.high = 1000
-        end
+function add_patch_functs!(recipe::Recipe{<: Type2_AGN_DP}, resid::QSFit.Residuals)
+    @invoke add_patch_functs!(recipe::Recipe{<: Type2_AGN}, resid)
+    model = resid.meval.model
+
+    if haskey(model, :OII_3727)  &&  haskey(model, :OIII_5007)
+        model[:OII_3727].voff.patch = :OIII_5007
+        model[:OII_3727].fwhm.patch = :OIII_5007
     end
-    return lcs
-end
-
-
-function QSFit.add_patch_functs!(::Type{T}, job::JobState) where T <: Type2AGN_DP
-    add_patch_functs!(supertype(T), job)
-
-    if haskey(job.model, :OII_3727)  &&  haskey(job.model, :OIII_5007)
-        job.model[:OII_3727].voff.patch = :OIII_5007
-        job.model[:OII_3727].fwhm.patch = :OIII_5007
-    end
-    if haskey(job.model, :OII_3727_2)  &&  haskey(job.model, :OIII_5007_2)
-        job.model[:OII_3727_2].voff.patch = :OIII_5007_2
-        job.model[:OII_3727_2].fwhm.patch = :OIII_5007_2
+    if haskey(model, :OII_3727_2)  &&  haskey(model, :OIII_5007_2)
+        model[:OII_3727_2].voff.patch = :OIII_5007_2
+        model[:OII_3727_2].fwhm.patch = :OIII_5007_2
     end
 
-    if haskey(job.model, :OIII_4959)  &&  haskey(job.model, :OIII_5007)
-        job.model[:OIII_4959].voff.patch = :OIII_5007
-        job.model[:OIII_4959].fwhm.patch = :OIII_5007
+    if haskey(model, :OIII_4959)  &&  haskey(model, :OIII_5007)
+        model[:OIII_4959].voff.patch = :OIII_5007
+        model[:OIII_4959].fwhm.patch = :OIII_5007
     end
 
-    if haskey(job.model, :OIII_4959_2)  &&  haskey(job.model, :OIII_5007_2)
-        job.model[:OIII_4959_2].voff.patch = :OIII_5007_2
-        job.model[:OIII_4959_2].fwhm.patch = :OIII_5007_2
+    if haskey(model, :OIII_4959_2)  &&  haskey(model, :OIII_5007_2)
+        model[:OIII_4959_2].voff.patch = :OIII_5007_2
+        model[:OIII_4959_2].fwhm.patch = :OIII_5007_2
     end
-    if haskey(job.model, :OIII_4959_core)  &&  haskey(job.model, :OIII_5007_core)
-        job.model[:OIII_4959_core].voff.patch = :OIII_5007_core
-        job.model[:OIII_4959_core].fwhm.patch = :OIII_5007_core
-    end
-
-    if haskey(job.model, :Ha)  &&  haskey(job.model, :Hb)
-        job.model[:Ha].voff.patch = :Hb
-        job.model[:Ha].fwhm.patch = :Hb
+    if haskey(model, :OIII_4959)  &&  haskey(model, :OIII_5007)
+        model[:OIII_4959].voff.patch = :OIII_5007
+        model[:OIII_4959].fwhm.patch = :OIII_5007
     end
 
-    if haskey(job.model, :Ha_2)  &&  haskey(job.model, :Hb_2)
-        job.model[:Ha_2].voff.patch = :Hb_2
-        job.model[:Ha_2].fwhm.patch = :Hb_2
+    if haskey(model, :Ha)  &&  haskey(model, :Hb)
+        model[:Ha].voff.patch = :Hb
+        model[:Ha].fwhm.patch = :Hb
     end
 
-    if haskey(job.model, :NII_6583_2)  &&  haskey(job.model, :OIII_5007_2)
-        job.model[:NII_6583_2].voff.patch = :OIII_5007_2
-        job.model[:NII_6583_2].fwhm.patch = :OIII_5007_2
+    if haskey(model, :Ha_2)  &&  haskey(model, :Hb_2)
+        model[:Ha_2].voff.patch = :Hb_2
+        model[:Ha_2].fwhm.patch = :Hb_2
     end
-    if haskey(job.model, :NII_6583)  &&  haskey(job.model, :OIII_5007)
-        job.model[:NII_6583].voff.patch = :OIII_5007
-        job.model[:NII_6583].fwhm.patch = :OIII_5007
+
+    if haskey(model, :NII_6583_2)  &&  haskey(model, :OIII_5007_2)
+        model[:NII_6583_2].voff.patch = :OIII_5007_2
+        model[:NII_6583_2].fwhm.patch = :OIII_5007_2
+    end
+    if haskey(model, :NII_6583)  &&  haskey(model, :OIII_5007)
+        model[:NII_6583].voff.patch = :OIII_5007
+        model[:NII_6583].fwhm.patch = :OIII_5007
     end
 end
