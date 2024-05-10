@@ -53,5 +53,6 @@ end
 
 include("Type2AGN_HSN.jl")
 include("Type2AGN_DP.jl")
+include("Type2AGN_DP_HbConstraint.jl")
 
 end

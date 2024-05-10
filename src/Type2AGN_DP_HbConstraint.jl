@@ -1,13 +1,13 @@
-export Type2_AGN_DP
+export Type2_AGN_DP_HbConstraint
 
-abstract type Type2_AGN_DP <: Type2_AGN end
+abstract type Type2_AGN_DP_HbConstraint <: Type2_AGN end
 
-function init_recipe!(recipe::Recipe{<: Type2_AGN_DP})
+function init_recipe!(recipe::Recipe{<: Type2_AGN_DP_HbConstraint})
     @invoke init_recipe!(recipe::Recipe{<: Type2_AGN})
     recipe.n_nuisance = 4
 end
 
-function set_lines_dict!(recipe::Recipe{<: Type2_AGN_DP})
+function set_lines_dict!(recipe::Recipe{<: Type2_AGN_DP_HbConstraint})
     (:lines in propertynames(recipe))  &&  (return get_lines_dict(recipe))
     add_line!(recipe, :Lya       , NarrowLine)
     add_line!(recipe, :NV_1241   , ForbiddenLine)
@@ -41,14 +41,14 @@ function set_lines_dict!(recipe::Recipe{<: Type2_AGN_DP})
 end
 
 
-function line_component(recipe::Recipe{<: Type2_AGN_DP}, center::Float64, T::Type{NarrowLine})
+function line_component(recipe::Recipe{<: Type2_AGN_DP_HbConstraint}, center::Float64, T::Type{NarrowLine})
     comp = @invoke line_component(recipe::Recipe{<: Type2_AGN}, center, T)
     comp.fwhm.high = 500
     return comp
 end
 
 
-function add_patch_functs!(recipe::Recipe{<: Type2_AGN_DP}, resid::QSFit.Residuals)
+function add_patch_functs!(recipe::Recipe{<: Type2_AGN_DP_HbConstraint}, resid::QSFit.Residuals)
     @invoke add_patch_functs!(recipe::Recipe{<: Type2_AGN}, resid)
     model = resid.meval.model
 
@@ -59,6 +59,11 @@ function add_patch_functs!(recipe::Recipe{<: Type2_AGN_DP}, resid::QSFit.Residua
     if haskey(model, :OII_3727_2)  &&  haskey(model, :OIII_5007_2)
         model[:OII_3727_2].voff.patch = :OIII_5007_2
         model[:OII_3727_2].fwhm.patch = :OIII_5007_2
+    end
+
+    if haskey(model, :OIII_5007_2)  &&  haskey(model, :Hb_2)
+        model[:OIII_5007_2].voff.patch = :Hb_2
+        model[:OIII_5007_2].fwhm.patch = :Hb_2
     end
 
     if haskey(model, :OIII_4959)  &&  haskey(model, :OIII_5007)
